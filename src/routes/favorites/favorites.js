@@ -55,7 +55,16 @@ FavoritesRouter.post("/add", async (req, res) => {
   const { userId, movieId } = req.body;
 
   try {
-    // Favorit in die Datenbank einfügen
+    // Überprüfen, ob bereits ein Favorit mit der angegebenen userId und movieId vorhanden ist
+    const existingFavorite = await Favorites.findOne({ where: { user_id: userId, movie_id: movieId } });
+
+    // Wenn ein Favorit bereits vorhanden ist, senden Sie eine Fehlermeldung an den Client
+    if (existingFavorite) {
+      console.log(`Der Favorit mit der Movie-ID ${movieId} ist bereits den Favoriten des Benutzers mit der ID ${userId} hinzugefügt.`);
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: `Der Favorit mit der Movie-ID ${movieId} ist bereits den Favoriten des Benutzers mit der ID ${userId} hinzugefügt.` });
+    }
+
+    // Wenn kein Favorit gefunden wurde, fügen Sie den neuen Favoriten hinzu
     const newFavorite = await Favorites.create({ user_id: userId, movie_id: movieId });
 
     console.log(`Movie mit der ID ${movieId} wurde zu den Favoriten des Benutzers mit der ID ${userId} hinzugefügt.`);
@@ -65,7 +74,6 @@ FavoritesRouter.post("/add", async (req, res) => {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Fehler beim Hinzufügen von Movie mit der ID ${movieId} zu den Favoriten des Benutzers mit der ID ${userId}.` });
   }
 });
-
 
 // DELETE-Anfrage, um einen Favoriten anhand von Benutzer-ID und Film-ID zu löschen
 FavoritesRouter.delete("/delete", async (req, res) => {
