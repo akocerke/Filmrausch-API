@@ -1,5 +1,6 @@
+// Model favorites.ja
 const { DataTypes } = require('sequelize');
-const sequelize = require('../database/database');
+const sequelize = require('../setup/database');
 
 const Favorites = sequelize.define('Favorites', {
   id: {
