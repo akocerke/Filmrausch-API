@@ -25,5 +25,67 @@ FavoritesRouter.get("/all", async (req, res) => {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "Fehler beim Abrufen aller Favoriten." });
   }
 });
+// GET-Anfrage, um alle Favoriten eines Benutzers anhand der Benutzer-ID zurückzugeben
+FavoritesRouter.get("/byUserId/:userId", async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    // Favoriten aus der Datenbank abrufen, die zur Benutzer-ID gehören
+    const userFavorites = await Favorites.findAll({ where: { user_id: userId } });
+
+    if (userFavorites.length === 0) {
+      console.log(`Keine Favoriten gefunden für Benutzer mit der ID ${userId}`);
+      return res.status(StatusCodes.NOT_FOUND).json({ message: `Keine Favoriten gefunden für Benutzer mit der ID ${userId}` });
+    }
+
+    // Extrahiere nur die movie_id aus den Favoriten
+    const movieIds = userFavorites.map(favorite => favorite.movie_id);
+
+    console.log(`Favoriten gefunden für Benutzer mit der ID ${userId}`);
+    res.status(StatusCodes.OK).json({ message: `Favoriten gefunden für Benutzer mit der ID ${userId}`, movieIds: movieIds });
+  } catch (error) {
+    console.error(`Fehler beim Abrufen der Favoriten für Benutzer mit der ID ${userId}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Fehler beim Abrufen der Favoriten für Benutzer mit der ID ${userId}.` });
+  }
+});
+
+
+// POST-Anfrage, um eine Movie-ID zu den Favoriten eines Benutzers hinzuzufügen
+FavoritesRouter.post("/add", async (req, res) => {
+  const { userId, movieId } = req.body;
+
+  try {
+    // Favorit in die Datenbank einfügen
+    const newFavorite = await Favorites.create({ user_id: userId, movie_id: movieId });
+
+    console.log(`Movie mit der ID ${movieId} wurde zu den Favoriten des Benutzers mit der ID ${userId} hinzugefügt.`);
+    res.status(StatusCodes.CREATED).json({ message: `Movie mit der ID ${movieId} wurde zu den Favoriten des Benutzers mit der ID ${userId} hinzugefügt.`, newFavorite: newFavorite });
+  } catch (error) {
+    console.error(`Fehler beim Hinzufügen von Movie mit der ID ${movieId} zu den Favoriten des Benutzers mit der ID ${userId}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Fehler beim Hinzufügen von Movie mit der ID ${movieId} zu den Favoriten des Benutzers mit der ID ${userId}.` });
+  }
+});
+
+
+// DELETE-Anfrage, um einen Favoriten anhand von Benutzer-ID und Film-ID zu löschen
+FavoritesRouter.delete("/delete", async (req, res) => {
+  const { userId, movieId } = req.body;
+
+  try {
+    // Favorit aus der Datenbank löschen, der zur Benutzer-ID und Film-ID gehört
+    const deletedFavorite = await Favorites.destroy({ where: { user_id: userId, movie_id: movieId } });
+
+    if (deletedFavorite === 0) {
+      console.log(`Kein Favorit gefunden für Benutzer mit der ID ${userId} und Film mit der ID ${movieId}`);
+      return res.status(StatusCodes.NOT_FOUND).json({ message: `Kein Favorit gefunden für Benutzer mit der ID ${userId} und Film mit der ID ${movieId}` });
+    }
+
+    console.log(`Favorit für Benutzer mit der ID ${userId} und Film mit der ID ${movieId} wurde erfolgreich gelöscht.`);
+    res.status(StatusCodes.OK).json({ message: `Favorit für Benutzer mit der ID ${userId} und Film mit der ID ${movieId} wurde erfolgreich gelöscht.` });
+  } catch (error) {
+    console.error(`Fehler beim Löschen des Favoriten für Benutzer mit der ID ${userId} und Film mit der ID ${movieId}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Fehler beim Löschen des Favoriten für Benutzer mit der ID ${userId} und Film mit der ID ${movieId}.` });
+  }
+});
 
 module.exports = FavoritesRouter;
