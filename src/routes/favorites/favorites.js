@@ -67,4 +67,25 @@ FavoritesRouter.post("/add", async (req, res) => {
 });
 
 
+// DELETE-Anfrage, um einen Favoriten anhand von Benutzer-ID und Film-ID zu löschen
+FavoritesRouter.delete("/delete", async (req, res) => {
+  const { userId, movieId } = req.body;
+
+  try {
+    // Favorit aus der Datenbank löschen, der zur Benutzer-ID und Film-ID gehört
+    const deletedFavorite = await Favorites.destroy({ where: { user_id: userId, movie_id: movieId } });
+
+    if (deletedFavorite === 0) {
+      console.log(`Kein Favorit gefunden für Benutzer mit der ID ${userId} und Film mit der ID ${movieId}`);
+      return res.status(StatusCodes.NOT_FOUND).json({ message: `Kein Favorit gefunden für Benutzer mit der ID ${userId} und Film mit der ID ${movieId}` });
+    }
+
+    console.log(`Favorit für Benutzer mit der ID ${userId} und Film mit der ID ${movieId} wurde erfolgreich gelöscht.`);
+    res.status(StatusCodes.OK).json({ message: `Favorit für Benutzer mit der ID ${userId} und Film mit der ID ${movieId} wurde erfolgreich gelöscht.` });
+  } catch (error) {
+    console.error(`Fehler beim Löschen des Favoriten für Benutzer mit der ID ${userId} und Film mit der ID ${movieId}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Fehler beim Löschen des Favoriten für Benutzer mit der ID ${userId} und Film mit der ID ${movieId}.` });
+  }
+});
+
 module.exports = FavoritesRouter;
