@@ -48,4 +48,23 @@ FavoritesRouter.get("/byUserId/:userId", async (req, res) => {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Fehler beim Abrufen der Favoriten für Benutzer mit der ID ${userId}.` });
   }
 });
+
+
+// POST-Anfrage, um eine Movie-ID zu den Favoriten eines Benutzers hinzuzufügen
+FavoritesRouter.post("/add", async (req, res) => {
+  const { userId, movieId } = req.body;
+
+  try {
+    // Favorit in die Datenbank einfügen
+    const newFavorite = await Favorites.create({ user_id: userId, movie_id: movieId });
+
+    console.log(`Movie mit der ID ${movieId} wurde zu den Favoriten des Benutzers mit der ID ${userId} hinzugefügt.`);
+    res.status(StatusCodes.CREATED).json({ message: `Movie mit der ID ${movieId} wurde zu den Favoriten des Benutzers mit der ID ${userId} hinzugefügt.`, newFavorite: newFavorite });
+  } catch (error) {
+    console.error(`Fehler beim Hinzufügen von Movie mit der ID ${movieId} zu den Favoriten des Benutzers mit der ID ${userId}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: `Fehler beim Hinzufügen von Movie mit der ID ${movieId} zu den Favoriten des Benutzers mit der ID ${userId}.` });
+  }
+});
+
+
 module.exports = FavoritesRouter;
