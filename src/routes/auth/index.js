@@ -14,7 +14,7 @@ AuthRouter.post("/login", async (req, res, next) => {
     const { username, password } = req.body; // Zugriff auf die Anmeldedaten im Anfragekörper
     const user = await Users.findOne({
       where: { username: username },
-    }); // Benutzer anhand der E-Mail-Adresse finden
+    }); // Benutzer anhand des Benutzernamens finden
     if (!user) {
       // Benutzer nicht gefunden
       return res.status(401).json({
@@ -31,11 +31,14 @@ AuthRouter.post("/login", async (req, res, next) => {
         error: "Ungültige Anmeldeinformationen",
       });
     }
+    // Benutzer-ID aus der Datenbankabfrage hinzufügen
+    const userId = user.id;
     res.status(200).json({
       message: "Login erfolgreich",
       user: {
+        id: userId,
         username: user.username,
-        // password: user.password,
+        // Weitere Benutzerdaten hier...
       },
     });
   } catch (error) {
@@ -46,6 +49,7 @@ AuthRouter.post("/login", async (req, res, next) => {
     });
   }
 });
+
 
 // Benutzerregistrierung
 AuthRouter.post("/register", async (req, res) => {
