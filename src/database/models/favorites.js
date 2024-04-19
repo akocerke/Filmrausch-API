@@ -1,4 +1,3 @@
-// Model favorites.ja
 const { DataTypes } = require('sequelize');
 const sequelize = require('../setup/database');
 
@@ -14,7 +13,11 @@ const Favorites = sequelize.define('Favorites', {
   },
   movie_id: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: true 
+  },
+  series_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true 
   }
 });
 
