@@ -1,5 +1,5 @@
 const express = require("express");
-// const cors = require("cors");
+const cors = require("cors");
 const bodyParser = require("body-parser");
 const { AppRouter } = require("./src/routes");
 
@@ -10,7 +10,7 @@ const { PORT } = process.env;
 const app = express();
 app.use(bodyParser.json());
 // Use for development
-// app.use(cors());
+app.use(cors());
 
 app.use("/filmrausch", AppRouter);
 
