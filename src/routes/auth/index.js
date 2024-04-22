@@ -3,52 +3,37 @@ const { Router } = require("express");
 const Users = require("../../database/models/users");
 const bcrypt = require("bcrypt");
 const { StatusCodes } = require("http-status-codes");
+const jwt = require('jsonwebtoken');
 
 const AuthRouter = Router();
 
-// Beispiel-Endpunkte für die Authentifizierung
 
-AuthRouter.post("/login", async (req, res, next) => {
-  // Handle login logic
+// Login Funktion mit token
+AuthRouter.post("/login", async (req, res) => {
   try {
-    const { username, password } = req.body; // Zugriff auf die Anmeldedaten im Anfragekörper
-    const user = await Users.findOne({
-      where: { username: username },
-    }); // Benutzer anhand des Benutzernamens finden
+    const { username, password } = req.body;
+    const user = await Users.findOne({ where: { username: username } });
     if (!user) {
-      // Benutzer nicht gefunden
-      return res.status(401).json({
-        message: "Login nicht erfolgreich",
-        error: "Benutzer nicht gefunden",
-      });
+      return res.status(401).json({ message: "Benutzer nicht gefunden" });
     }
-    // Passwort überprüfen
+
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      // Passwort stimmt nicht überein
-      return res.status(401).json({
-        message: "Login nicht erfolgreich",
-        error: "Ungültige Anmeldeinformationen",
-      });
+      return res.status(401).json({ message: "Ungültige Anmeldeinformationen" });
     }
-    // Benutzer-ID aus der Datenbankabfrage hinzufügen
-    const userId = user.id;
-    res.status(200).json({
-      message: "Login erfolgreich",
-      user: {
-        id: userId,
-        username: user.username,
-        // Weitere Benutzerdaten hier...
-      },
-    });
+
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      'secretKey',  // Sie sollten einen sicheren Schlüssel verwenden und in Umgebungsvariablen speichern
+      { expiresIn: '1h' }  // Token-Gültigkeit
+    );
+
+    res.status(200).json({ message: "Login erfolgreich", token: token });
   } catch (error) {
-    // Fehler bei der Verarbeitung der Anfrage
-    res.status(500).json({
-      message: "Ein Fehler ist aufgetreten",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Ein Fehler ist aufgetreten", error: error.message });
   }
 });
+
 
 
 // Benutzerregistrierung
@@ -88,8 +73,32 @@ AuthRouter.post("/register", async (req, res) => {
     });
   }
 });
+
+
+// Logout Funktion mit roken inkl console.log
 AuthRouter.post("/logout", (req, res) => {
-  // Handle logout logic
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  console.log("Token received for logout:", token);  // Log the token when received
+
+  if (token) {
+    jwt.verify(token, 'secretKey', (err, user) => {
+      if (err) {
+        console.log("Token verification failed:", err);
+        return res.sendStatus(403); // Bei ungültigem Token
+      }
+
+      console.log(`Logout requested by user ID: ${user.id}`); // Hier loggen wir die Benutzer-ID
+      res.status(200).json({ message: "Erfolgreich ausgeloggt" });
+    });
+  } else {
+    console.log("No token provided for logout");
+    res.status(401).json({ message: "No token provided" });
+  }
 });
+
+
+
+
 
 module.exports = { AuthRouter };
