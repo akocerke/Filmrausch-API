@@ -40,8 +40,8 @@ FavoritesRouter.get("/byUserId/:userId", async (req, res) => {
     }
 
     // Extrahiere nur die movie_id aus den Favoriten
-    const movieIds = userFavorites.map(favorite => favorite.movie_id);
-    const seriesIds = userFavorites.map(favorite => favorite.series_id);
+    const movieIds = userFavorites.map(favorite => favorite.movie_id).filter(movieId=>movieId);
+    const seriesIds = userFavorites.map(favorite => favorite.series_id).filter(seriesId=>seriesId);
 
     console.log(`Favoriten gefunden für Benutzer mit der ID ${userId}`);
     res.status(StatusCodes.OK).json({ message: `Favoriten gefunden für Benutzer mit der ID ${userId}`, movieIds: movieIds, seriesIds: seriesIds });
